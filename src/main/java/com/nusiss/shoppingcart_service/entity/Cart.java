@@ -15,7 +15,10 @@ public class Cart {
     private Long cartId;
 
     @Column(nullable = false)
-    private Long userId;
+    private Integer userId;
+
+    @Column(nullable = false)
+    private String createUser;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createDatetime = LocalDateTime.now();
@@ -36,12 +39,20 @@ public class Cart {
         this.cartId = cartId;
     }
 
-    public Long getUserId() {
+    public Integer getUserId() {
         return userId;
     }
 
-    public void setUserId(Long userId) {
+    public void setUserId(Integer userId) {
         this.userId = userId;
+    }
+
+    public String getCreateUser() {
+        return createUser;
+    }
+
+    public void setCreateUser(String createUser) {
+        this.createUser = createUser;
     }
 
     public LocalDateTime getCreateDatetime() {

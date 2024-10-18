@@ -1,5 +1,8 @@
 package com.nusiss.shoppingcart_service.service.impl;
 
+import com.nusiss.commonservice.config.ApiResponse;
+import com.nusiss.commonservice.entity.User;
+import com.nusiss.commonservice.feign.UserFeignClient;
 import com.nusiss.shoppingcart_service.entity.Cart;
 import com.nusiss.shoppingcart_service.entity.CartItem;
 import com.nusiss.shoppingcart_service.exception.CartNotFoundException;
@@ -11,6 +14,8 @@ import com.nusiss.shoppingcart_service.service.InventoryServiceClient;
 import com.nusiss.shoppingcart_service.service.ProductServiceClient;
 import com.nusiss.shoppingcart_service.service.ShoppingCartService;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,15 +33,28 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
 
+    @Autowired
+    private UserFeignClient userFeignClient;
+
     public ShoppingCartServiceImpl(CartRepository cartRepository, CartItemRepository cartItemRepository, ProductServiceClient productServiceClient, InventoryServiceClient inventoryServiceClient) {
         this.cartRepository = cartRepository;
         this.cartItemRepository = cartItemRepository;
         this.productServiceClient = productServiceClient;
         this.inventoryServiceClient = inventoryServiceClient;
     }
+    @Override
+    public ResponseEntity<ApiResponse<User>> getUserById(Integer id) {
+
+        return userFeignClient.getUserById(id);
+    }
 
     @Override
-    public Cart createCart(Long userId) {
+    public ResponseEntity<ApiResponse<User>> getCurrentUserInfo(String authToken) {
+
+        return userFeignClient.getCurrentUserInfo(authToken);
+    }
+    @Override
+    public Cart createCart(Integer userId) {
         Cart cart = new Cart();
         cart.setUserId(userId);
         return cartRepository.save(cart);
@@ -45,27 +63,23 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     @Override
     @Transactional
     public Cart addItemToCart(Long cartId, CartItem cartItem) {
-        // check product exist and stock
-        /*boolean productExists = productServiceClient.isProductAvailable(cartItem.getProductId());
-        if (!productExists) {
-            throw new ProductNotFoundException("Product not found with id: " + cartItem.getProductId());
-        }
-
-        boolean stockAvailable = inventoryServiceClient.isStockAvailable(cartItem.getProductId(), cartItem.getQuantity());
+        // check product exist and stock using inventoryServiceClient
+        boolean stockAvailable = inventoryServiceClient.check(cartItem.getProductId(), cartItem.getQuantity());
         if (!stockAvailable) {
             throw new InsufficientStockException("Not enough stock for product id: " + cartItem.getProductId());
-        }*/
+        }
 
         Cart cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new CartNotFoundException("Cart not found with id: " + cartId));
 
-        List<CartItem> cartItems = new ArrayList<>();
+        List<CartItem> cartItems = new ArrayList<>(cart.getCartItems());
         cartItems.add(cartItem);
-
         cart.setCartItems(cartItems);
+
         cartItemRepository.save(cartItem);
         return cart;
     }
+
 
     @Override
     @Transactional
@@ -80,7 +94,7 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
             throw new CartNotFoundException("Cart item does not belong to the cart with id: " + cartId);
         }
 
-        boolean stockAvailable = inventoryServiceClient.isStockAvailable(cartItem.getProductId(), quantity);
+        boolean stockAvailable = inventoryServiceClient.check(cartItem.getProductId(), quantity);
         if (!stockAvailable) {
             throw new InsufficientStockException("Not enough stock for product id: " + cartItem.getProductId());
         }
@@ -124,7 +138,7 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     }
 
     @Override
-    public Cart getCartByUserId(Long userId) {
+    public Cart getCartByUserId(Integer userId) {
         return cartRepository.findByUserId(userId)
                 .orElseThrow(() -> new CartNotFoundException("Cart not found for user with ID: " + userId));
     }
