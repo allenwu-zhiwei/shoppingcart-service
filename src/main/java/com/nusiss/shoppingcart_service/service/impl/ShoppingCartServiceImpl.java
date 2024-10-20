@@ -7,40 +7,51 @@ import com.nusiss.shoppingcart_service.entity.Cart;
 import com.nusiss.shoppingcart_service.entity.CartItem;
 import com.nusiss.shoppingcart_service.exception.CartNotFoundException;
 import com.nusiss.shoppingcart_service.exception.InsufficientStockException;
-import com.nusiss.shoppingcart_service.exception.ProductNotFoundException;
 import com.nusiss.shoppingcart_service.repository.CartItemRepository;
 import com.nusiss.shoppingcart_service.repository.CartRepository;
 import com.nusiss.shoppingcart_service.service.InventoryServiceClient;
 import com.nusiss.shoppingcart_service.service.ProductServiceClient;
 import com.nusiss.shoppingcart_service.service.ShoppingCartService;
 
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+
 @Service
 public class ShoppingCartServiceImpl implements ShoppingCartService {
 
-    private final ProductServiceClient productServiceClient;
-
-    private final InventoryServiceClient inventoryServiceClient;
-
     private final CartRepository cartRepository;
+    private final ProductServiceClient productServiceClient;
+    private final InventoryServiceClient inventoryServiceClient;
     private final CartItemRepository cartItemRepository;
+    private final UserFeignClient userFeignClient;
 
     @Autowired
-    private UserFeignClient userFeignClient;
-
-    public ShoppingCartServiceImpl(CartRepository cartRepository, CartItemRepository cartItemRepository, ProductServiceClient productServiceClient, InventoryServiceClient inventoryServiceClient) {
+    public ShoppingCartServiceImpl(CartRepository cartRepository,
+                                   ProductServiceClient productServiceClient,
+                                   InventoryServiceClient inventoryServiceClient,
+                                   CartItemRepository cartItemRepository,
+                                   UserFeignClient userFeignClient) {
         this.cartRepository = cartRepository;
-        this.cartItemRepository = cartItemRepository;
         this.productServiceClient = productServiceClient;
         this.inventoryServiceClient = inventoryServiceClient;
+        this.cartItemRepository = cartItemRepository;
+        this.userFeignClient = userFeignClient;
+    }
+
+    @PostConstruct
+    public void checkFeignClients() {
+        System.out.println("InventoryServiceClient is null: " + (inventoryServiceClient == null));
+        System.out.println("ProductServiceClient is null: " + (productServiceClient == null));
+        System.out.println("UserFeignClient is null: " + (userFeignClient == null));
     }
     @Override
     public ResponseEntity<ApiResponse<User>> getUserById(Integer id) {
@@ -54,45 +65,50 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         return userFeignClient.getCurrentUserInfo(authToken);
     }
     @Override
-    public Cart createCart(Integer userId) {
+    public Cart createCart(Integer userId, String createUser, String updateUser) {
         Cart cart = new Cart();
         cart.setUserId(userId);
+        cart.setCreateUser(createUser);
+        cart.setUpdateUser(updateUser);
         return cartRepository.save(cart);
     }
 
     @Override
     @Transactional
-    public Cart addItemToCart(Long cartId, CartItem cartItem) {
+    public boolean addItemToCart(Cart cart, Long productId, int quantity, double price, String createUser) {
         // check product exist and stock using inventoryServiceClient
-        boolean stockAvailable = inventoryServiceClient.check(cartItem.getProductId(), cartItem.getQuantity());
+        boolean stockAvailable = inventoryServiceClient.check(productId, quantity);
+        System.out.println(stockAvailable);
         if (!stockAvailable) {
-            throw new InsufficientStockException("Not enough stock for product id: " + cartItem.getProductId());
+            throw new InsufficientStockException("Not enough stock for product id: " + productId);
         }
 
-        Cart cart = cartRepository.findById(cartId)
-                .orElseThrow(() -> new CartNotFoundException("Cart not found with id: " + cartId));
-
-        List<CartItem> cartItems = new ArrayList<>(cart.getCartItems());
-        cartItems.add(cartItem);
-        cart.setCartItems(cartItems);
-
-        cartItemRepository.save(cartItem);
-        return cart;
+        Optional<CartItem> existingItemOpt = cart.findItemByProductId(productId);
+        if (existingItemOpt.isPresent()) {
+            CartItem existingItem = existingItemOpt.get();
+            existingItem.setQuantity(existingItem.getQuantity() + quantity);
+            existingItem.setUpdateUser(createUser);
+            existingItem.setUpdateDatetime(LocalDateTime.now());
+            cartItemRepository.save(existingItem);
+        } else {
+            CartItem cartItem = new CartItem();
+            cartItem.setCart(cart);
+            cartItem.setProductId(productId);
+            cartItem.setQuantity(quantity);
+            cartItem.setPrice(price);
+            cartItem.setCreateUser(createUser);
+            cartItem.setCreateDatetime(LocalDateTime.now());
+            cartItemRepository.save(cartItem);
+        }
+        return true;
     }
 
 
     @Override
     @Transactional
-    public Cart updateItemQuantity(Long cartId, Long cartItemId, int quantity) {
-        Cart cart = cartRepository.findById(cartId)
-                .orElseThrow(() -> new CartNotFoundException("Cart not found with id: " + cartId));
-
+    public boolean updateItemQuantity(Cart cart, Long cartItemId, int quantity) {
         CartItem cartItem = cartItemRepository.findById(cartItemId)
                 .orElseThrow(() -> new CartNotFoundException("Cart item not found with id: " + cartItemId));
-
-        if (!cart.getCartItems().contains(cartItem)) {
-            throw new CartNotFoundException("Cart item does not belong to the cart with id: " + cartId);
-        }
 
         boolean stockAvailable = inventoryServiceClient.check(cartItem.getProductId(), quantity);
         if (!stockAvailable) {
@@ -102,12 +118,12 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         cartItem.setQuantity(quantity);
         cartItemRepository.save(cartItem);
 
-        return cart;
+        return true;
     }
 
     @Override
     @Transactional
-    public Cart removeItemFromCart(Long cartId, Long cartItemId) {
+    public boolean removeItemFromCart(Long cartId, Long cartItemId) {
         Cart cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new CartNotFoundException("Cart not found with id: " + cartId));
 
@@ -115,18 +131,24 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
                 .orElseThrow(() -> new CartNotFoundException("CartItem not found with id: " + cartItemId));
 
         cartItemRepository.delete(cartItem);
-        return cart;
+        return true;
     }
 
+    //有问题，无法删除？？？？？
     @Override
     @Transactional
-    public Cart clearCart(Long cartId) {
+    public boolean clearCart(Long cartId) {
         Cart cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new CartNotFoundException("Cart not found with id: " + cartId));
 
         List<CartItem> cartItems = cart.getCartItems();
-        cartItemRepository.deleteAll(cartItems);
-        return cart;
+        if (!cartItems.isEmpty()) {
+            for (CartItem item : cartItems) {
+                cart.removeCartItem(item);
+            }
+            cartItemRepository.deleteAll(cartItems);
+        }
+        return true;
     }
 
     @Override
@@ -139,8 +161,8 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
 
     @Override
     public Cart getCartByUserId(Integer userId) {
-        return cartRepository.findByUserId(userId)
-                .orElseThrow(() -> new CartNotFoundException("Cart not found for user with ID: " + userId));
+        return cartRepository.findByUserId(userId).orElse(null);
     }
+
 
 }

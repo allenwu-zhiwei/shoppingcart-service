@@ -5,6 +5,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Entity
 @Table(name = "cart", schema = "nusmall_cart")
@@ -19,6 +20,9 @@ public class Cart {
 
     @Column(nullable = false)
     private String createUser;
+
+    @Column(nullable = false)
+    private String updateUser;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createDatetime = LocalDateTime.now();
@@ -55,6 +59,14 @@ public class Cart {
         this.createUser = createUser;
     }
 
+    public String getUpdateUser() {
+        return updateUser;
+    }
+
+    public void setUpdateUser(String updateUser) {
+        this.updateUser = updateUser;
+    }
+
     public LocalDateTime getCreateDatetime() {
         return createDatetime;
     }
@@ -77,5 +89,16 @@ public class Cart {
 
     public void setCartItems(List<CartItem> cartItems) {
         this.cartItems = cartItems;
+    }
+
+    public Optional<CartItem> findItemByProductId(Long productId) {
+        return cartItems.stream()
+                .filter(item -> item.getProductId().equals(productId))
+                .findFirst();
+    }
+
+    public void removeCartItem(CartItem cartItem) {
+        cartItems.remove(cartItem);
+        cartItem.setCart(null);
     }
 }

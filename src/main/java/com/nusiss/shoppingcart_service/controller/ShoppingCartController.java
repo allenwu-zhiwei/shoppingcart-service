@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.*;
 import com.nusiss.commonservice.config.ApiResponse;
 import com.nusiss.commonservice.entity.User;
 import com.nusiss.commonservice.feign.UserFeignClient;
+
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -38,13 +40,15 @@ public class ShoppingCartController {
         }
 
         User user = response.getBody().getData();
-        Cart cart = shoppingCartService.createCart(user.getUserId());
-        cart.setCreateUser(user.getUsername());
+        Cart cart = shoppingCartService.createCart(user.getUserId(), user.getUsername(), user.getUsername());
+
+        cart.setCreateDatetime(LocalDateTime.now());
+        cart.setUpdateDatetime(LocalDateTime.now());
         return new ResponseEntity<>(cart, HttpStatus.CREATED);
     }
 
     @PostMapping("/add-item")
-    public ResponseEntity<Cart> addItemToCart(@RequestHeader("authToken") String authToken, @Valid @RequestBody AddCartItemRequest request) {
+    public ResponseEntity<String> addItemToCart(@RequestHeader("authToken") String authToken, @Valid @RequestBody AddCartItemRequest request) {
         ResponseEntity<ApiResponse<User>> response = userService.getCurrentUserInfo(authToken);
         if (response.getBody() == null || !response.getBody().isSuccess()) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
@@ -52,18 +56,15 @@ public class ShoppingCartController {
 
         User user = response.getBody().getData();
         Cart cart = shoppingCartService.getCartByUserId(user.getUserId());
-
         if (cart == null) {
-            cart = shoppingCartService.createCart(user.getUserId());
+            cart = shoppingCartService.createCart(user.getUserId(), user.getUsername(), user.getUsername());
         }
-
-        CartItem cartItem = new CartItem();
-        cartItem.setProductId(request.getProductId());
-        cartItem.setQuantity(request.getQuantity());
-        cartItem.setCart(cart);
-        cartItem.setCreateUser(user.getUsername());
-        cart = shoppingCartService.addItemToCart(request.getCartId(), cartItem);
-        return new ResponseEntity<>(cart, HttpStatus.OK);
+        boolean success = shoppingCartService.addItemToCart(cart, request.getProductId(), request.getQuantity(), request.getPrice(), user.getUsername());
+        if (success) {
+            return new ResponseEntity<>("Item successfully added to cart", HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>("Failed to add item to cart", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @GetMapping("/items")
@@ -76,25 +77,31 @@ public class ShoppingCartController {
         User user = response.getBody().getData();
         Cart cart = shoppingCartService.getCartByUserId(user.getUserId());
         if (cart == null) {
-            cart = shoppingCartService.createCart(user.getUserId());
+            cart = shoppingCartService.createCart(user.getUserId(), user.getUsername(), user.getUsername());
         }
         List<CartItem> items = shoppingCartService.getCartItems(cart.getCartId());
         return new ResponseEntity<>(items, HttpStatus.OK);
     }
 
     @PutMapping("/update-item-quantity")
-    public ResponseEntity<Cart> updateCartItemQuantity(@RequestHeader("authToken") String authToken, @Valid @RequestBody UpdateCartItemQuantityRequest request) {
+    public ResponseEntity<String> updateCartItemQuantity(@RequestHeader("authToken") String authToken, @Valid @RequestBody UpdateCartItemQuantityRequest request) {
         ResponseEntity<ApiResponse<User>> response = userService.getCurrentUserInfo(authToken);
         if (response.getBody() == null || !response.getBody().isSuccess()) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
+        User user = response.getBody().getData();
+        Cart cart = shoppingCartService.getCartByUserId(user.getUserId());
 
-        Cart cart = shoppingCartService.updateItemQuantity(request.getCartId(), request.getCartItemId(), request.getQuantity());
-        return new ResponseEntity<>(cart, HttpStatus.OK);
+        boolean success = shoppingCartService.updateItemQuantity(cart, request.getCartItemId(), request.getQuantity());
+        if (success) {
+            return new ResponseEntity<>("Item quantity successfully changed", HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>("Failed to change item quantity", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @DeleteMapping("/remove-item/{cartItemId}")
-    public ResponseEntity<Cart> removeItemFromCart(@RequestHeader("authToken") String authToken, @PathVariable Long cartItemId) {
+    public ResponseEntity<String> removeItemFromCart(@RequestHeader("authToken") String authToken, @PathVariable Long cartItemId) {
         ResponseEntity<ApiResponse<User>> response = userService.getCurrentUserInfo(authToken);
         if (response.getBody() == null || !response.getBody().isSuccess()) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
@@ -102,12 +109,16 @@ public class ShoppingCartController {
 
         User user = response.getBody().getData();
         Cart cart = shoppingCartService.getCartByUserId(user.getUserId());
-        cart = shoppingCartService.removeItemFromCart(cart.getCartId(), cartItemId);
-        return new ResponseEntity<>(cart, HttpStatus.OK);
+        boolean success = shoppingCartService.removeItemFromCart(cart.getCartId(), cartItemId);
+        if (success) {
+            return new ResponseEntity<>("Item successfully removed", HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>("Failed to remove item", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @DeleteMapping("/clear")
-    public ResponseEntity<Cart> clearCart(@RequestHeader("authToken") String authToken) {
+    public ResponseEntity<String> clearCart(@RequestHeader("authToken") String authToken) {
         ResponseEntity<ApiResponse<User>> response = userService.getCurrentUserInfo(authToken);
         if (response.getBody() == null || !response.getBody().isSuccess()) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
@@ -115,7 +126,11 @@ public class ShoppingCartController {
 
         User user = response.getBody().getData();
         Cart cart = shoppingCartService.getCartByUserId(user.getUserId());
-        cart = shoppingCartService.clearCart(cart.getCartId());
-        return new ResponseEntity<>(cart, HttpStatus.OK);
+        boolean success = shoppingCartService.clearCart(cart.getCartId());
+        if (success) {
+            return new ResponseEntity<>("successfully removed", HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>("Failed to remove", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

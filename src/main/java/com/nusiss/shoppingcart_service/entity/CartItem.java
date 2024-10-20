@@ -17,6 +17,7 @@ public class CartItem {
     @JsonBackReference
     private Cart cart;
 
+
     @Column(nullable = false)
     private Long productId;
 
@@ -26,13 +27,13 @@ public class CartItem {
     @Column(nullable = false)
     private double price;
 
-    @Column(nullable = false, updatable = false)
+    @Column(nullable = false)
     private LocalDateTime createDatetime = LocalDateTime.now();
 
     @Column(nullable = false)
     private LocalDateTime updateDatetime = LocalDateTime.now();
 
-    @Column(length = 100, nullable = false)
+    @Column(length = 100)
     private String createUser;
 
     @Column(length = 100)

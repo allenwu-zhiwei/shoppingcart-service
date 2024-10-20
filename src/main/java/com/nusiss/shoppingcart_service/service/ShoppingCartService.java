@@ -14,15 +14,15 @@ import java.util.List;
 
 public interface ShoppingCartService {
 
-    Cart createCart(Integer userId);
+    Cart createCart(Integer userId, String createUser, String updateUser);
 
-    Cart addItemToCart(Long cartId, CartItem cartItem);
+    boolean addItemToCart(Cart cart, Long productId, int quantity, double price, String createUser);
 
-    Cart updateItemQuantity(Long cartId, Long cartItemId, int quantity);
+    boolean updateItemQuantity(Cart cart, Long cartItemId, int quantity);
 
-    Cart removeItemFromCart(Long cartId, Long cartItemId);
+    boolean removeItemFromCart(Long cartId, Long cartItemId);
 
-    Cart clearCart(Long cartId);
+    boolean clearCart(Long cartId);
 
     List<CartItem> getCartItems(Long cartId);
 
