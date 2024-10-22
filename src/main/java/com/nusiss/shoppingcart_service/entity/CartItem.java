@@ -39,7 +39,19 @@ public class CartItem {
     @Column(length = 100)
     private String updateUser;
 
+    @Column(name = "is_selected")
+    private Boolean isSelected = false;
+
     // Getters and setters
+
+    public Boolean getIsSelected() {
+        return isSelected;
+    }
+
+    public void setIsSelected(Boolean isSelected) {
+        this.isSelected = isSelected;
+    }
+
     public Long getCartItemId() {
         return cartItemId;
     }

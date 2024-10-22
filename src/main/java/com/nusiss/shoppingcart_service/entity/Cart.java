@@ -4,6 +4,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,7 +33,7 @@ public class Cart {
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL)
     @JsonManagedReference
-    private List<CartItem> cartItems;
+    private List<CartItem> cartItems = new ArrayList<>();;
 
     // Getters and setters
     public Long getCartId() {

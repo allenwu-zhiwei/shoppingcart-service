@@ -5,6 +5,7 @@ import com.nusiss.shoppingcart_service.dto.AddCartItemRequest;
 import com.nusiss.shoppingcart_service.dto.UpdateCartItemQuantityRequest;
 import com.nusiss.shoppingcart_service.entity.Cart;
 import com.nusiss.shoppingcart_service.entity.CartItem;
+import com.nusiss.shoppingcart_service.service.CartItemService;
 import com.nusiss.shoppingcart_service.service.ShoppingCartService;
 import com.nusiss.shoppingcart_service.service.UserService;
 import jakarta.validation.Valid;
@@ -28,6 +29,8 @@ public class ShoppingCartController {
     @Autowired
     private ShoppingCartService shoppingCartService;
 
+    @Autowired
+    private CartItemService cartItemService;
     @Qualifier("userServiceImpl")
     @Autowired
     private UserService userService;
@@ -132,5 +135,42 @@ public class ShoppingCartController {
         } else {
             return new ResponseEntity<>("Failed to remove", HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    @PutMapping("/update-item-selected")
+    public ResponseEntity<CartItem> updateItemSelected(@RequestHeader("authToken") String authToken, @RequestParam Long cartItemId, @RequestParam Boolean isSelected) {
+        ResponseEntity<ApiResponse<User>> response = userService.getCurrentUserInfo(authToken);
+        if (response.getBody() == null || !response.getBody().isSuccess()) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+        User user = response.getBody().getData();
+        Cart cart = shoppingCartService.getCartByUserId(user.getUserId());
+        CartItem cartItem = cartItemService.updateItemSelected(cart.getCartId(), cartItemId, isSelected);
+        return ResponseEntity.ok(cartItem);
+    }
+    @GetMapping("/selected-items")
+    public ResponseEntity<List<CartItem>> getSelectedItems(@RequestHeader("authToken") String authToken) {
+        ResponseEntity<ApiResponse<User>> response = userService.getCurrentUserInfo(authToken);
+        if (response.getBody() == null || !response.getBody().isSuccess()) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+        User user = response.getBody().getData();
+        Cart cart = shoppingCartService.getCartByUserId(user.getUserId());
+        List<CartItem> selectedItems = cartItemService.getSelectedItems(cart.getCartId());
+        return ResponseEntity.ok(selectedItems);
+    }
+    @DeleteMapping("/remove-selected-items")
+    public ResponseEntity<String> removeSelectedItems(@RequestHeader("authToken") String authToken) {
+        ResponseEntity<ApiResponse<User>> response = userService.getCurrentUserInfo(authToken);
+        if (response.getBody() == null || !response.getBody().isSuccess()) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+        User user = response.getBody().getData();
+        Cart cart = shoppingCartService.getCartByUserId(user.getUserId());
+        cartItemService.removeSelectedItems(cart.getCartId());
+        return ResponseEntity.ok("Selected items removed successfully");
     }
 }
