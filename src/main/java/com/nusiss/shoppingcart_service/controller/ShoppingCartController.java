@@ -2,6 +2,7 @@ package com.nusiss.shoppingcart_service.controller;
 
 import com.nusiss.shoppingcart_service.config.UserPrincipal;
 import com.nusiss.shoppingcart_service.dto.AddCartItemRequest;
+import com.nusiss.shoppingcart_service.dto.CartInfoDTO;
 import com.nusiss.shoppingcart_service.dto.UpdateCartItemQuantityRequest;
 import com.nusiss.shoppingcart_service.entity.Cart;
 import com.nusiss.shoppingcart_service.entity.CartItem;
@@ -21,6 +22,7 @@ import com.nusiss.commonservice.feign.UserFeignClient;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/cart")
@@ -150,8 +152,9 @@ public class ShoppingCartController {
         CartItem cartItem = cartItemService.updateItemSelected(cart.getCartId(), cartItemId, isSelected);
         return ResponseEntity.ok(cartItem);
     }
+
     @GetMapping("/selected-items")
-    public ResponseEntity<List<CartItem>> getSelectedItems(@RequestHeader("authToken") String authToken) {
+    public ResponseEntity<List<CartInfoDTO>> getSelectedItems(@RequestHeader("authToken") String authToken) {
         ResponseEntity<ApiResponse<User>> response = userService.getCurrentUserInfo(authToken);
         if (response.getBody() == null || !response.getBody().isSuccess()) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
@@ -160,8 +163,15 @@ public class ShoppingCartController {
         User user = response.getBody().getData();
         Cart cart = shoppingCartService.getCartByUserId(user.getUserId());
         List<CartItem> selectedItems = cartItemService.getSelectedItems(cart.getCartId());
-        return ResponseEntity.ok(selectedItems);
+
+        // 将 List<CartItem> 转换为 List<CartInfoDTO>
+        List<CartInfoDTO> dtoList = selectedItems.stream()
+                .map(shoppingCartService::convertToDTO)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(dtoList);
     }
+
     @DeleteMapping("/remove-selected-items")
     public ResponseEntity<String> removeSelectedItems(@RequestHeader("authToken") String authToken) {
         ResponseEntity<ApiResponse<User>> response = userService.getCurrentUserInfo(authToken);

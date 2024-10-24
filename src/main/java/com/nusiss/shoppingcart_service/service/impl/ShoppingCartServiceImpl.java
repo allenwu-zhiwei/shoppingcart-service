@@ -3,6 +3,8 @@ package com.nusiss.shoppingcart_service.service.impl;
 import com.nusiss.commonservice.config.ApiResponse;
 import com.nusiss.commonservice.entity.User;
 import com.nusiss.commonservice.feign.UserFeignClient;
+import com.nusiss.shoppingcart_service.dto.CartInfoDTO;
+import com.nusiss.shoppingcart_service.dto.ProductDTO;
 import com.nusiss.shoppingcart_service.entity.Cart;
 import com.nusiss.shoppingcart_service.entity.CartItem;
 import com.nusiss.shoppingcart_service.exception.CartNotFoundException;
@@ -162,6 +164,25 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     @Override
     public Cart getCartByUserId(Integer userId) {
         return cartRepository.findByUserId(userId).orElse(null);
+    }
+
+    @Override
+    public CartInfoDTO convertToDTO(CartItem cartItem) {
+        CartInfoDTO dto = new CartInfoDTO();
+        dto.setCartItemId(cartItem.getCartItemId());
+        dto.setProductId(cartItem.getProductId());
+        ResponseEntity<ApiResponse<ProductDTO>> response = productServiceClient.productInfo(cartItem.getProductId());
+        if (response.getBody() != null && response.getBody().isSuccess()) {
+            ProductDTO productDTO = response.getBody().getData();
+            dto.setProductName(productDTO.getName());
+            dto.setPrice(productDTO.getPrice().doubleValue());
+        }
+        dto.setQuantity(cartItem.getQuantity());
+        dto.setCreateDatetime(cartItem.getCreateDatetime());
+        dto.setUpdateDatetime(cartItem.getUpdateDatetime());
+        dto.setCreateUser(cartItem.getCreateUser());
+        dto.setUpdateUser(cartItem.getUpdateUser());
+        return dto;
     }
 
 

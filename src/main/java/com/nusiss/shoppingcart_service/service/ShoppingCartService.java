@@ -2,6 +2,7 @@ package com.nusiss.shoppingcart_service.service;
 
 import com.nusiss.commonservice.config.ApiResponse;
 import com.nusiss.commonservice.entity.User;
+import com.nusiss.shoppingcart_service.dto.CartInfoDTO;
 import com.nusiss.shoppingcart_service.entity.Cart;
 import com.nusiss.shoppingcart_service.entity.CartItem;
 import com.nusiss.shoppingcart_service.exception.CartNotFoundException;
@@ -31,5 +32,7 @@ public interface ShoppingCartService {
     public ResponseEntity<ApiResponse<User>> getUserById(Integer id);
 
     public ResponseEntity<ApiResponse<User>> getCurrentUserInfo(String authToken);
+
+    public CartInfoDTO convertToDTO(CartItem cartItem);
 
 }
