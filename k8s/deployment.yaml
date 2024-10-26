@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shoppingcart-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shoppingcart-service
+  template:
+    metadata:
+      labels:
+        app: shoppingcart-service
+    spec:
+      containers:
+        - name: shoppingcart-service
+          image: alllenwu249/shoppingcart-service:latest
+          ports:
+            - containerPort: 8086
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "512Mi"
+            limits:
+              cpu: "500m"
+              memory: "1Gi"
