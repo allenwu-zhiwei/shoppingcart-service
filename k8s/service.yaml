@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: notification-service
+  name: shoppingcart-service
 spec:
   type: NodePort
   selector:
-    app: notification-service
+    app: shoppingcart-service
   ports:
     - port: 8086
       targetPort: 8086
