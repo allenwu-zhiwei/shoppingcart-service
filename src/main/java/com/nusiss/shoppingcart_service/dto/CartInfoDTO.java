@@ -1,57 +1,22 @@
-package com.nusiss.shoppingcart_service.entity;
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.nusiss.shoppingcart_service.entity.Cart;
-import jakarta.persistence.*;
+package com.nusiss.shoppingcart_service.dto;
+
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "cart_item",  schema = "nusmall_cart")
-public class CartItem {
+import java.time.LocalDateTime;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class CartInfoDTO {
+
     private Long cartItemId;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cart_id", nullable = false)
-    @JsonBackReference
-    private Cart cart;
-
-
-    @Column(nullable = false)
     private Long productId;
-
-    @Column(nullable = false)
+    private String productName;
     private int quantity;
-
-    @Column(nullable = false)
     private double price;
-
-    @Column(nullable = false)
     private LocalDateTime createDatetime = LocalDateTime.now();
-
-    @Column(nullable = false)
     private LocalDateTime updateDatetime = LocalDateTime.now();
-
-    @Column(length = 100)
     private String createUser;
-
-    @Column(length = 100)
     private String updateUser;
 
-    @Column(name = "is_selected")
-    private Boolean isSelected = false;
-
-    // Getters and setters
-
-    public Boolean getIsSelected() {
-        return isSelected;
-    }
-
-    public void setIsSelected(Boolean isSelected) {
-        this.isSelected = isSelected;
-    }
-
+    // Getters and Setters
     public Long getCartItemId() {
         return cartItemId;
     }
@@ -60,20 +25,20 @@ public class CartItem {
         this.cartItemId = cartItemId;
     }
 
-    public Cart getCart() {
-        return cart;
-    }
-
-    public void setCart(Cart cart) {
-        this.cart = cart;
-    }
-
     public Long getProductId() {
         return productId;
     }
 
     public void setProductId(Long productId) {
         this.productId = productId;
+    }
+
+    public String getProductName() {
+        return productName;
+    }
+
+    public void setProductName(String productName) {
+        this.productName = productName;
     }
 
     public int getQuantity() {
