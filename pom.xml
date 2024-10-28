@@ -169,10 +169,7 @@
 								<exclude>**/exception</exclude>
 								<exclude>**/config/*</exclude>
 							</excludes>
-							<reports>
-								<xml enabled="true"/>
-								<html enabled="true"/>
-							</reports>
+
 						</configuration>
 					</execution>
 				</executions>
