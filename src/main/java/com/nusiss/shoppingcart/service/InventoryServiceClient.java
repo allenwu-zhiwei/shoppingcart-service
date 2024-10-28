@@ -5,8 +5,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 @FeignClient(name = "inventory")
 public interface InventoryServiceClient {
-    @GetMapping("/inventory/check")
-    boolean check(@RequestParam("productId") Long productId, @RequestParam("num") int num);
+    @GetMapping("/check/{productId}/{num}")
+    boolean check(@PathVariable("productId") Long productId, @PathVariable("num") int num);
 }
 
 
