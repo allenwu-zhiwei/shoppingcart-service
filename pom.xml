@@ -163,11 +163,12 @@
 						<configuration>
 							<outputDirectory>${project.build.directory}/site/jacoco</outputDirectory>
 							<dataFile>${project.build.directory}/jacoco.exec</dataFile>
-							<includes>
-								<!-- Include only service and controller packages -->
-								<include>com/nusiss/shoppingcart_service/service/**</include>
-								<include>com/nusiss/shoppingcart_service/service/controller/**</include>
-							</includes>
+							<includes>**/controller/**, **/service/**</includes>
+							<!--<excludes>
+								<exclude>**/dto/*</exclude>
+								<exclude>**/exception</exclude>
+								<exclude>**/config/*</exclude>
+							</excludes>-->
 							<reports>
 								<xml enabled="true"/>
 								<html enabled="true"/>
@@ -176,6 +177,7 @@
 					</execution>
 				</executions>
 			</plugin>
+
 		</plugins>
 	</build>
 </project>
