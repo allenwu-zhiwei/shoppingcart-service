@@ -8,7 +8,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @SpringBootApplication
 @EnableDiscoveryClient
-@EnableFeignClients(basePackages = {"com.nusiss.commonservice.feign", "com.nusiss.shoppingcart_service.service", "com.nusiss.shoppingcart_service.service.impl"})
+@EnableFeignClients(basePackages = {"com.nusiss.commonservice.feign", "com.nusiss.shoppingcart.service", "com.nusiss.shoppingcart.service.impl"})
 
 public class ShoppingcartServiceApplication {
 
