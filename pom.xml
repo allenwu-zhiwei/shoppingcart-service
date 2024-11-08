@@ -143,41 +143,6 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
-			<plugin>
-				<groupId>org.jacoco</groupId>
-				<artifactId>jacoco-maven-plugin</artifactId>
-				<version>0.8.8</version>
-				<executions>
-					<execution>
-						<id>prepare-agent</id>
-						<goals>
-							<goal>prepare-agent</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>report</id>
-						<phase>test</phase> <!-- Run the report after the test phase -->
-						<goals>
-							<goal>report</goal>
-						</goals>
-						<configuration>
-							<outputDirectory>${project.build.directory}/site/jacoco</outputDirectory>
-							<dataFile>${project.build.directory}/jacoco.exec</dataFile>
-							<includes>**/controller/**, **/service/**</includes>
-							<excludes>
-								<exclude>**/dto/*</exclude>
-								<exclude>**/exception</exclude>
-								<exclude>**/config/*</exclude>
-							</excludes>
-							<reports>
-								<xml enabled="true"/>
-								<html enabled="true"/>
-							</reports>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-
 		</plugins>
 	</build>
 </project>
