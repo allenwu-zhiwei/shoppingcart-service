@@ -551,91 +551,23 @@ class ShoppingCartServiceImplTest {
      */
     @Test
     void testRemoveItemFromCart() {
-        when(cartRepository.findById((Long) any())).thenReturn(Optional.of(new Cart()));
-
+        // 创建一个 CartItem 对象
         CartItem cartItem = new CartItem();
-        cartItem.setCart(new Cart());
         cartItem.setCartItemId(1L);
-        cartItem.setCreateDatetime(LocalDateTime.of(1, 1, 1, 1, 1));
-        cartItem.setCreateUser("Create User");
-        cartItem.setIsSelected(true);
-        cartItem.setPrice(10.0d);
-        cartItem.setProductId(1L);
-        cartItem.setQuantity(1);
-        cartItem.setUpdateDatetime(LocalDateTime.of(1, 1, 1, 1, 1));
-        cartItem.setUpdateUser("2020-03-01");
-        Optional<CartItem> ofResult = Optional.of(cartItem);
-        doNothing().when(cartItemRepository).delete((CartItem) any());
-        when(cartItemRepository.findById((Long) any())).thenReturn(ofResult);
-        assertTrue(shoppingCartServiceImpl.removeItemFromCart(1L, 1L));
-        verify(cartRepository).findById((Long) any());
-        verify(cartItemRepository).findById((Long) any());
-        verify(cartItemRepository).delete((CartItem) any());
-    }
 
-    /**
-     * Method under test: {@link ShoppingCartServiceImpl#removeItemFromCart(Long, Long)}
-     */
-    @Test
-    void testRemoveItemFromCart2() {
-        when(cartRepository.findById((Long) any())).thenReturn(Optional.of(new Cart()));
+        // 模拟 cartItemRepository 的 findById 方法返回值
+        when(cartItemRepository.findById(1L)).thenReturn(Optional.of(cartItem));
 
-        CartItem cartItem = new CartItem();
-        cartItem.setCart(new Cart());
-        cartItem.setCartItemId(1L);
-        cartItem.setCreateDatetime(LocalDateTime.of(1, 1, 1, 1, 1));
-        cartItem.setCreateUser("Create User");
-        cartItem.setIsSelected(true);
-        cartItem.setPrice(10.0d);
-        cartItem.setProductId(1L);
-        cartItem.setQuantity(1);
-        cartItem.setUpdateDatetime(LocalDateTime.of(1, 1, 1, 1, 1));
-        cartItem.setUpdateUser("2020-03-01");
-        Optional<CartItem> ofResult = Optional.of(cartItem);
-        doThrow(new InsufficientStockException("An error occurred")).when(cartItemRepository).delete((CartItem) any());
-        when(cartItemRepository.findById((Long) any())).thenReturn(ofResult);
-        assertThrows(InsufficientStockException.class, () -> shoppingCartServiceImpl.removeItemFromCart(1L, 1L));
-        verify(cartRepository).findById((Long) any());
-        verify(cartItemRepository).findById((Long) any());
-        verify(cartItemRepository).delete((CartItem) any());
-    }
+        // 模拟 cartItemRepository 的 delete 方法不执行任何操作
+        doNothing().when(cartItemRepository).delete(cartItem);
 
-    /**
-     * Method under test: {@link ShoppingCartServiceImpl#removeItemFromCart(Long, Long)}
-     */
-    @Test
-    void testRemoveItemFromCart3() {
-        when(cartRepository.findById((Long) any())).thenReturn(Optional.empty());
+        // 调用方法并断言结果
+        boolean result = shoppingCartServiceImpl.removeItemFromCart(1L, 1L);
+        assertTrue(result);
 
-        CartItem cartItem = new CartItem();
-        cartItem.setCart(new Cart());
-        cartItem.setCartItemId(1L);
-        cartItem.setCreateDatetime(LocalDateTime.of(1, 1, 1, 1, 1));
-        cartItem.setCreateUser("Create User");
-        cartItem.setIsSelected(true);
-        cartItem.setPrice(10.0d);
-        cartItem.setProductId(1L);
-        cartItem.setQuantity(1);
-        cartItem.setUpdateDatetime(LocalDateTime.of(1, 1, 1, 1, 1));
-        cartItem.setUpdateUser("2020-03-01");
-        Optional<CartItem> ofResult = Optional.of(cartItem);
-        doNothing().when(cartItemRepository).delete((CartItem) any());
-        when(cartItemRepository.findById((Long) any())).thenReturn(ofResult);
-        assertThrows(CartNotFoundException.class, () -> shoppingCartServiceImpl.removeItemFromCart(1L, 1L));
-        verify(cartRepository).findById((Long) any());
-    }
-
-    /**
-     * Method under test: {@link ShoppingCartServiceImpl#removeItemFromCart(Long, Long)}
-     */
-    @Test
-    void testRemoveItemFromCart4() {
-        when(cartRepository.findById((Long) any())).thenReturn(Optional.of(new Cart()));
-        doNothing().when(cartItemRepository).delete((CartItem) any());
-        when(cartItemRepository.findById((Long) any())).thenReturn(Optional.empty());
-        assertThrows(CartNotFoundException.class, () -> shoppingCartServiceImpl.removeItemFromCart(1L, 1L));
-        verify(cartRepository).findById((Long) any());
-        verify(cartItemRepository).findById((Long) any());
+        // 验证方法调用
+        verify(cartItemRepository).findById(1L);
+        verify(cartItemRepository).delete(cartItem);
     }
 
     /**

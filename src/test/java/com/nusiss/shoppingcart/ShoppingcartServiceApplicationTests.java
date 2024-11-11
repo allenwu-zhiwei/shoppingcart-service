@@ -5,6 +5,7 @@ import com.nusiss.commonservice.config.ApiResponse;
 import com.nusiss.shoppingcart.controller.ShoppingCartController;
 import com.nusiss.shoppingcart.entity.Cart;
 import com.nusiss.shoppingcart.entity.CartItem;
+import com.nusiss.shoppingcart.exception.CartNotFoundException;
 import com.nusiss.shoppingcart.service.CartItemService;
 import com.nusiss.shoppingcart.service.ShoppingCartService;
 import com.nusiss.shoppingcart.service.UserService;
@@ -20,11 +21,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.*;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -158,27 +162,35 @@ public class ShoppingcartServiceApplicationTests {
                 .andExpect(content().string("Item quantity successfully changed"));
     }
 
+
     @Test
     void testRemoveItemFromCart() throws Exception {
-        // Arrange
+        // 模拟 User 对象
         User user = new User();
-        ReflectionTestUtils.setField(user, "userId", 1);  // 使用 Integer 类型设置 userId
+        ReflectionTestUtils.setField(user, "userId", 1);  // 改为 Integer 类型
+        // 使用反射设置 userId
         user.setUsername("User1");
         ApiResponse<User> userResponse = new ApiResponse<>(true, "Success", user);
         ResponseEntity<ApiResponse<User>> userEntity = new ResponseEntity<>(userResponse, HttpStatus.OK);
 
-        doReturn(userEntity).when(userService).getCurrentUserInfo(any());
+        // 模拟 userService.getCurrentUserInfo 返回值
+        when(userService.getCurrentUserInfo(anyString())).thenReturn(userEntity);
+
+        // 模拟 shoppingCartService.getCartByUserId 返回值
         Cart cart = new Cart();
         cart.setCartId(1L);
-        when(shoppingCartService.getCartByUserId(anyInt())).thenReturn(cart);
-        when(shoppingCartService.removeItemFromCart(anyLong(), anyLong())).thenReturn(true);
+        when(shoppingCartService.getCartByUserId(1)).thenReturn(cart);
 
-        // Act & Assert
+        // 模拟 shoppingCartService.removeItemFromCart 返回值
+        when(shoppingCartService.removeItemFromCart(1L, 1L)).thenReturn(true);
+
+        // 执行测试并验证结果
         mockMvc.perform(delete("/api/v1/cart/remove-item/1")
                         .header("authToken", "dummyToken"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Item successfully removed"));
     }
+
 
     @Test
     void testClearCart() throws Exception {
