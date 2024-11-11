@@ -15,7 +15,6 @@ import com.nusiss.shoppingcart.service.InventoryServiceClient;
 import com.nusiss.shoppingcart.service.ProductServiceClient;
 import com.nusiss.shoppingcart.service.ShoppingCartService;
 
-import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -35,6 +34,7 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     private final CartItemRepository cartItemRepository;
     private final UserFeignClient userFeignClient;
 
+    private static final String CART_NOT_FOUND_MESSAGE = "Cart not found with id: ";
     @Autowired
     public ShoppingCartServiceImpl(CartRepository cartRepository,
                                    ProductServiceClient productServiceClient,
@@ -48,12 +48,6 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         this.userFeignClient = userFeignClient;
     }
 
-    @PostConstruct
-    public void checkFeignClients() {
-        System.out.println("InventoryServiceClient is null: " + (inventoryServiceClient == null));
-        System.out.println("ProductServiceClient is null: " + (productServiceClient == null));
-        System.out.println("UserFeignClient is null: " + (userFeignClient == null));
-    }
     @Override
     public ResponseEntity<ApiResponse<User>> getUserById(Integer id) {
 
@@ -79,7 +73,6 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     public boolean addItemToCart(Cart cart, Long productId, int quantity, double price, String createUser) {
         // check product exist and stock using inventoryServiceClient
         boolean stockAvailable = inventoryServiceClient.check(productId, quantity);
-        System.out.println(stockAvailable);
         if (!stockAvailable) {
             throw new InsufficientStockException("Not enough stock for product id: " + productId);
         }
@@ -125,9 +118,6 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     @Override
     @Transactional
     public boolean removeItemFromCart(Long cartId, Long cartItemId) {
-        Cart cart = cartRepository.findById(cartId)
-                .orElseThrow(() -> new CartNotFoundException("Cart not found with id: " + cartId));
-
         CartItem cartItem = cartItemRepository.findById(cartItemId)
                 .orElseThrow(() -> new CartNotFoundException("CartItem not found with id: " + cartItemId));
 
@@ -140,7 +130,7 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     @Transactional
     public boolean clearCart(Long cartId) {
         Cart cart = cartRepository.findById(cartId)
-                .orElseThrow(() -> new CartNotFoundException("Cart not found with id: " + cartId));
+                .orElseThrow(() -> new CartNotFoundException(CART_NOT_FOUND_MESSAGE + cartId));
 
         List<CartItem> cartItems = cart.getCartItems();
         if (!cartItems.isEmpty()) {
@@ -155,7 +145,7 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     @Override
     public List<CartItem> getCartItems(Long cartId) {
         Cart cart = cartRepository.findById(cartId)
-                .orElseThrow(() -> new CartNotFoundException("Cart not found with id: " + cartId));
+                .orElseThrow(() -> new CartNotFoundException(CART_NOT_FOUND_MESSAGE + cartId));
 
         return cart.getCartItems();
     }
@@ -171,10 +161,13 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         dto.setCartItemId(cartItem.getCartItemId());
         dto.setProductId(cartItem.getProductId());
         ResponseEntity<ApiResponse<ProductDTO>> response = productServiceClient.productInfo(cartItem.getProductId());
-        if (response.getBody() != null && response.getBody().isSuccess()) {
-            ProductDTO productDTO = response.getBody().getData();
-            dto.setProductName(productDTO.getName());
-            dto.setPrice(productDTO.getPrice().doubleValue());
+        ApiResponse<ProductDTO> responseBody = response.getBody();
+        if (responseBody != null && responseBody.isSuccess()) {
+            ProductDTO productDTO = responseBody.getData();
+            if (productDTO != null) {
+                dto.setProductName(productDTO.getName());
+                dto.setPrice(productDTO.getPrice().doubleValue());
+            }
         }
         dto.setQuantity(cartItem.getQuantity());
         dto.setCreateDatetime(cartItem.getCreateDatetime());

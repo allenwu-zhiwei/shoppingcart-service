@@ -37,6 +37,7 @@ import org.junit.jupiter.api.Disabled;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.function.Executable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.ResponseEntity;
@@ -63,96 +64,6 @@ class ShoppingCartServiceImplTest {
 
     @MockBean
     private UserFeignClient userFeignClient;
-
-    /**
-     * Method under test: {@link ShoppingCartServiceImpl#checkFeignClients()}
-     */
-    @Test
-    void testCheckFeignClients() {
-        //   Diffblue Cover was unable to write a Spring test,
-        //   so wrote a non-Spring test instead.
-        //   Reason: R002 Missing observers.
-        //   Diffblue Cover was unable to create an assertion.
-        //   Add getters for the following fields or make them package-private:
-        //     ShoppingCartServiceImpl.cartItemRepository
-        //     ShoppingCartServiceImpl.cartRepository
-        //     ShoppingCartServiceImpl.inventoryServiceClient
-        //     ShoppingCartServiceImpl.productServiceClient
-        //     ShoppingCartServiceImpl.userFeignClient
-
-        ShoppingCartServiceImpl shoppingCartServiceImpl = new ShoppingCartServiceImpl(mock(CartRepository.class),
-                mock(ProductServiceClient.class), mock(InventoryServiceClient.class), mock(CartItemRepository.class), null);
-        shoppingCartServiceImpl.checkFeignClients();
-        assertNull(shoppingCartServiceImpl.getCartByUserId(1));
-    }
-
-    /**
-     * Method under test: {@link ShoppingCartServiceImpl#checkFeignClients()}
-     */
-    @Test
-    void testCheckFeignClients2() {
-        //   Diffblue Cover was unable to write a Spring test,
-        //   so wrote a non-Spring test instead.
-        //   Reason: R002 Missing observers.
-        //   Diffblue Cover was unable to create an assertion.
-        //   Add getters for the following fields or make them package-private:
-        //     ShoppingCartServiceImpl.cartItemRepository
-        //     ShoppingCartServiceImpl.cartRepository
-        //     ShoppingCartServiceImpl.inventoryServiceClient
-        //     ShoppingCartServiceImpl.productServiceClient
-        //     ShoppingCartServiceImpl.userFeignClient
-
-        ShoppingCartServiceImpl shoppingCartServiceImpl = new ShoppingCartServiceImpl(mock(CartRepository.class), null,
-                mock(InventoryServiceClient.class), mock(CartItemRepository.class), null);
-        shoppingCartServiceImpl.checkFeignClients();
-        assertNull(shoppingCartServiceImpl.getCartByUserId(1));
-    }
-
-    /**
-     * Method under test: {@link ShoppingCartServiceImpl#checkFeignClients()}
-     */
-    @Test
-    void testCheckFeignClients3() {
-        //   Diffblue Cover was unable to write a Spring test,
-        //   so wrote a non-Spring test instead.
-        //   Reason: R002 Missing observers.
-        //   Diffblue Cover was unable to create an assertion.
-        //   Add getters for the following fields or make them package-private:
-        //     ShoppingCartServiceImpl.cartItemRepository
-        //     ShoppingCartServiceImpl.cartRepository
-        //     ShoppingCartServiceImpl.inventoryServiceClient
-        //     ShoppingCartServiceImpl.productServiceClient
-        //     ShoppingCartServiceImpl.userFeignClient
-
-        ShoppingCartServiceImpl shoppingCartServiceImpl = new ShoppingCartServiceImpl(mock(CartRepository.class),
-                mock(ProductServiceClient.class), null, mock(CartItemRepository.class), null);
-        shoppingCartServiceImpl.checkFeignClients();
-        assertNull(shoppingCartServiceImpl.getCartByUserId(1));
-    }
-
-    /**
-     * Method under test: {@link ShoppingCartServiceImpl#checkFeignClients()}
-     */
-    @Test
-    void testCheckFeignClients4() {
-        //   Diffblue Cover was unable to write a Spring test,
-        //   so wrote a non-Spring test instead.
-        //   Reason: R002 Missing observers.
-        //   Diffblue Cover was unable to create an assertion.
-        //   Add getters for the following fields or make them package-private:
-        //     ShoppingCartServiceImpl.cartItemRepository
-        //     ShoppingCartServiceImpl.cartRepository
-        //     ShoppingCartServiceImpl.inventoryServiceClient
-        //     ShoppingCartServiceImpl.productServiceClient
-        //     ShoppingCartServiceImpl.userFeignClient
-
-        ShoppingCartServiceImpl shoppingCartServiceImpl = new ShoppingCartServiceImpl(mock(CartRepository.class),
-                mock(ProductServiceClient.class), mock(InventoryServiceClient.class), mock(CartItemRepository.class),
-                mock(UserFeignClient.class));
-        shoppingCartServiceImpl.checkFeignClients();
-        assertNull(shoppingCartServiceImpl.getCartByUserId(1));
-        assertNull(shoppingCartServiceImpl.getCurrentUserInfo("ABC123"));
-    }
 
     /**
      * Method under test: {@link ShoppingCartServiceImpl#getUserById(Integer)}
@@ -241,18 +152,19 @@ class ShoppingCartServiceImplTest {
         verify(cartItemRepository).save((CartItem) any());
     }
 
-    /**
-     * Method under test: {@link ShoppingCartServiceImpl#addItemToCart(Cart, Long, int, double, String)}
-     */
     @Test
     void testAddItemToCart2() {
         when(inventoryServiceClient.check((Long) any(), anyInt())).thenReturn(true);
         when(cartItemRepository.save((CartItem) any())).thenThrow(new InsufficientStockException("An error occurred"));
-        assertThrows(InsufficientStockException.class,
-                () -> shoppingCartServiceImpl.addItemToCart(new Cart(), 1L, 2, 10.0d, "Create User"));
+
+        // 使用方法引用替换 lambda 表达式，以便 lambda 只包含一次调用
+        Executable executable = () -> shoppingCartServiceImpl.addItemToCart(new Cart(), 1L, 2, 10.0d, "Create User");
+        assertThrows(InsufficientStockException.class, executable);
+
         verify(inventoryServiceClient).check((Long) any(), anyInt());
         verify(cartItemRepository).save((CartItem) any());
     }
+
 
     /**
      * Method under test: {@link ShoppingCartServiceImpl#addItemToCart(Cart, Long, int, double, String)}
@@ -273,8 +185,8 @@ class ShoppingCartServiceImplTest {
         cartItem.setUpdateDatetime(LocalDateTime.of(1, 1, 1, 1, 1));
         cartItem.setUpdateUser("2020-03-01");
         when(cartItemRepository.save((CartItem) any())).thenReturn(cartItem);
-        assertThrows(InsufficientStockException.class,
-                () -> shoppingCartServiceImpl.addItemToCart(new Cart(), 1L, 2, 10.0d, "Create User"));
+        Executable executable = () -> shoppingCartServiceImpl.addItemToCart(new Cart(), 1L, 2, 10.0d, "Create User");
+        assertThrows(InsufficientStockException.class, executable);
         verify(inventoryServiceClient).check((Long) any(), anyInt());
     }
 
@@ -284,14 +196,7 @@ class ShoppingCartServiceImplTest {
     @Test
     @Disabled("TODO: Complete this test")
     void testAddItemToCart4() {
-        // TODO: Complete this test.
-        //   Reason: R013 No inputs found that don't throw a trivial exception.
-        //   Diffblue Cover tried to run the arrange/act section, but the method under
-        //   test threw
-        //   java.lang.NullPointerException: Cannot invoke "com.nusiss.shoppingcart_service.entity.Cart.findItemByProductId(java.lang.Long)" because "cart" is null
-        //       at com.nusiss.shoppingcart_service.service.impl.ShoppingCartServiceImpl.addItemToCart(ShoppingCartServiceImpl.java:88)
-        //   See https://diff.blue/R013 to resolve this issue.
-
+        // Arrange
         when(inventoryServiceClient.check((Long) any(), anyInt())).thenReturn(true);
 
         CartItem cartItem = new CartItem();
@@ -306,8 +211,15 @@ class ShoppingCartServiceImplTest {
         cartItem.setUpdateDatetime(LocalDateTime.of(1, 1, 1, 1, 1));
         cartItem.setUpdateUser("2020-03-01");
         when(cartItemRepository.save((CartItem) any())).thenReturn(cartItem);
-        shoppingCartServiceImpl.addItemToCart(null, 1L, 2, 10.0d, "Create User");
+
+        // Act & Assert
+        NullPointerException exception = assertThrows(NullPointerException.class,
+                () -> shoppingCartServiceImpl.addItemToCart(null, 1L, 2, 10.0d, "Create User"));
+
+        // Verify the exception message (optional, for better understanding)
+        assertEquals("Cannot invoke \"com.nusiss.shoppingcart_service.entity.Cart.findItemByProductId(java.lang.Long)\" because \"cart\" is null", exception.getMessage());
     }
+
 
     /**
      * Method under test: {@link ShoppingCartServiceImpl#addItemToCart(Cart, Long, int, double, String)}
@@ -468,8 +380,8 @@ class ShoppingCartServiceImplTest {
         Optional<CartItem> ofResult = Optional.of(cartItem);
         when(cartItemRepository.save((CartItem) any())).thenThrow(new InsufficientStockException("An error occurred"));
         when(cartItemRepository.findById((Long) any())).thenReturn(ofResult);
-        assertThrows(InsufficientStockException.class,
-                () -> shoppingCartServiceImpl.updateItemQuantity(new Cart(), 1L, 1));
+        Executable executable = () -> shoppingCartServiceImpl.updateItemQuantity(new Cart(), 1L, 1);
+        assertThrows(InsufficientStockException.class, executable);
         verify(inventoryServiceClient).check((Long) any(), anyInt());
         verify(cartItemRepository).save((CartItem) any());
         verify(cartItemRepository).findById((Long) any());
@@ -508,8 +420,8 @@ class ShoppingCartServiceImplTest {
         cartItem1.setUpdateUser("2020-03-01");
         when(cartItemRepository.save((CartItem) any())).thenReturn(cartItem1);
         when(cartItemRepository.findById((Long) any())).thenReturn(ofResult);
-        assertThrows(InsufficientStockException.class,
-                () -> shoppingCartServiceImpl.updateItemQuantity(new Cart(), 1L, 1));
+        Executable executable = () -> shoppingCartServiceImpl.updateItemQuantity(new Cart(), 1L, 1);
+        assertThrows(InsufficientStockException.class, executable);
         verify(inventoryServiceClient).check((Long) any(), anyInt());
         verify(cartItemRepository).findById((Long) any());
     }
@@ -617,8 +529,8 @@ class ShoppingCartServiceImplTest {
         cartItem1.setUpdateUser("2020-03-01");
         when(cartItemRepository.save((CartItem) any())).thenReturn(cartItem1);
         when(cartItemRepository.findById((Long) any())).thenReturn(ofResult);
-        assertThrows(InsufficientStockException.class,
-                () -> shoppingCartServiceImpl.updateItemQuantity(new Cart(), 1L, 1));
+        Executable executable = () -> shoppingCartServiceImpl.updateItemQuantity(new Cart(), 1L, 1);
+        assertThrows(InsufficientStockException.class, executable);
         verify(inventoryServiceClient).check((Long) any(), anyInt());
         verify(cartItemRepository).findById((Long) any());
         verify(cartItem, atLeast(1)).getProductId();
@@ -869,21 +781,20 @@ class ShoppingCartServiceImplTest {
     @Test
     @Disabled("TODO: Complete this test")
     void testGetCartItems4() {
-        // TODO: Complete this test.
-        //   Reason: R013 No inputs found that don't throw a trivial exception.
-        //   Diffblue Cover tried to run the arrange/act section, but the method under
-        //   test threw
-        //   com.nusiss.shoppingcart_service.exception.InsufficientStockException: An error occurred
-        //       at com.nusiss.shoppingcart_service.entity.Cart.getCartItems(Cart.java:88)
-        //       at com.nusiss.shoppingcart_service.service.impl.ShoppingCartServiceImpl.getCartItems(ShoppingCartServiceImpl.java:161)
-        //   See https://diff.blue/R013 to resolve this issue.
-
+        // Arrange
         Cart cart = mock(Cart.class);
         when(cart.getCartItems()).thenThrow(new InsufficientStockException("An error occurred"));
         Optional<Cart> ofResult = Optional.of(cart);
         when(cartRepository.findById((Long) any())).thenReturn(ofResult);
-        shoppingCartServiceImpl.getCartItems(1L);
+
+        // Act & Assert
+        InsufficientStockException exception = assertThrows(InsufficientStockException.class,
+                () -> shoppingCartServiceImpl.getCartItems(1L));
+
+        // Assert that the exception message is correct
+        assertEquals("An error occurred", exception.getMessage());
     }
+
 
     /**
      * Method under test: {@link ShoppingCartServiceImpl#getCartByUserId(Integer)}
@@ -912,14 +823,7 @@ class ShoppingCartServiceImplTest {
     @Test
     @Disabled("TODO: Complete this test")
     void testConvertToDTO() {
-        // TODO: Complete this test.
-        //   Reason: R013 No inputs found that don't throw a trivial exception.
-        //   Diffblue Cover tried to run the arrange/act section, but the method under
-        //   test threw
-        //   java.lang.NullPointerException: Cannot invoke "org.springframework.http.ResponseEntity.getBody()" because "response" is null
-        //       at com.nusiss.shoppingcart_service.service.impl.ShoppingCartServiceImpl.convertToDTO(ShoppingCartServiceImpl.java:175)
-        //   See https://diff.blue/R013 to resolve this issue.
-
+        // Arrange
         when(productServiceClient.productInfo((Long) any())).thenReturn(null);
 
         CartItem cartItem = new CartItem();
@@ -933,8 +837,15 @@ class ShoppingCartServiceImplTest {
         cartItem.setQuantity(1);
         cartItem.setUpdateDatetime(LocalDateTime.of(1, 1, 1, 1, 1));
         cartItem.setUpdateUser("2020-03-01");
-        shoppingCartServiceImpl.convertToDTO(cartItem);
+
+        // Act & Assert
+        NullPointerException exception = assertThrows(NullPointerException.class,
+                () -> shoppingCartServiceImpl.convertToDTO(cartItem));
+
+        // Verify the exception message (optional, for better understanding)
+        assertEquals("Cannot invoke \"org.springframework.http.ResponseEntity.getBody()\" because \"response\" is null", exception.getMessage());
     }
+
 
     /**
      * Method under test: {@link ShoppingCartServiceImpl#convertToDTO(CartItem)}
@@ -974,10 +885,10 @@ class ShoppingCartServiceImplTest {
      */
     @Test
     void testConvertToDTO3() {
-        ResponseEntity<ApiResponse<ProductDTO>> responseEntity = (ResponseEntity<ApiResponse<ProductDTO>>) mock(
-                ResponseEntity.class);
+        ResponseEntity<ApiResponse<ProductDTO>> responseEntity = (ResponseEntity<ApiResponse<ProductDTO>>) mock(ResponseEntity.class);
         when(responseEntity.getBody()).thenReturn(new ApiResponse<>());
         when(productServiceClient.productInfo((Long) any())).thenReturn(responseEntity);
+
         CartItem cartItem = mock(CartItem.class);
         when(cartItem.getQuantity()).thenReturn(1);
         when(cartItem.getCartItemId()).thenReturn(1L);
@@ -986,27 +897,9 @@ class ShoppingCartServiceImplTest {
         when(cartItem.getUpdateUser()).thenReturn("2020-03-01");
         when(cartItem.getCreateDatetime()).thenReturn(LocalDateTime.of(1, 1, 1, 1, 1));
         when(cartItem.getUpdateDatetime()).thenReturn(LocalDateTime.of(1, 1, 1, 1, 1));
-        doNothing().when(cartItem).setCart((Cart) any());
-        doNothing().when(cartItem).setCartItemId((Long) any());
-        doNothing().when(cartItem).setCreateDatetime((LocalDateTime) any());
-        doNothing().when(cartItem).setCreateUser((String) any());
-        doNothing().when(cartItem).setIsSelected((Boolean) any());
-        doNothing().when(cartItem).setPrice(anyDouble());
-        doNothing().when(cartItem).setProductId((Long) any());
-        doNothing().when(cartItem).setQuantity(anyInt());
-        doNothing().when(cartItem).setUpdateDatetime((LocalDateTime) any());
-        doNothing().when(cartItem).setUpdateUser((String) any());
-        cartItem.setCart(new Cart());
-        cartItem.setCartItemId(1L);
-        cartItem.setCreateDatetime(LocalDateTime.of(1, 1, 1, 1, 1));
-        cartItem.setCreateUser("Create User");
-        cartItem.setIsSelected(true);
-        cartItem.setPrice(10.0d);
-        cartItem.setProductId(1L);
-        cartItem.setQuantity(1);
-        cartItem.setUpdateDatetime(LocalDateTime.of(1, 1, 1, 1, 1));
-        cartItem.setUpdateUser("2020-03-01");
+
         CartInfoDTO actualConvertToDTOResult = shoppingCartServiceImpl.convertToDTO(cartItem);
+
         assertEquals(1L, actualConvertToDTOResult.getCartItemId().longValue());
         assertEquals("2020-03-01", actualConvertToDTOResult.getUpdateUser());
         assertEquals(1, actualConvertToDTOResult.getQuantity());
@@ -1014,6 +907,7 @@ class ShoppingCartServiceImplTest {
         assertEquals(1L, actualConvertToDTOResult.getProductId().longValue());
         assertEquals("Create User", actualConvertToDTOResult.getCreateUser());
         assertEquals("0001-01-01", actualConvertToDTOResult.getCreateDatetime().toLocalDate().toString());
+
         verify(productServiceClient).productInfo((Long) any());
         verify(responseEntity, atLeast(1)).getBody();
         verify(cartItem).getQuantity();
@@ -1023,16 +917,7 @@ class ShoppingCartServiceImplTest {
         verify(cartItem).getUpdateUser();
         verify(cartItem).getCreateDatetime();
         verify(cartItem).getUpdateDatetime();
-        verify(cartItem).setCart((Cart) any());
-        verify(cartItem).setCartItemId((Long) any());
-        verify(cartItem).setCreateDatetime((LocalDateTime) any());
-        verify(cartItem).setCreateUser((String) any());
-        verify(cartItem).setIsSelected((Boolean) any());
-        verify(cartItem).setPrice(anyDouble());
-        verify(cartItem).setProductId((Long) any());
-        verify(cartItem).setQuantity(anyInt());
-        verify(cartItem).setUpdateDatetime((LocalDateTime) any());
-        verify(cartItem).setUpdateUser((String) any());
     }
+
 }
 

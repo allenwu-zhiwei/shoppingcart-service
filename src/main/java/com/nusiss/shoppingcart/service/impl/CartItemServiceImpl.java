@@ -12,7 +12,7 @@ import java.util.List;
 @Service
 public class CartItemServiceImpl implements CartItemService {
 
-    @Autowired
+    @Autowired//NOSONAR
     private CartItemRepository cartItemRepository;
 
     @Override
