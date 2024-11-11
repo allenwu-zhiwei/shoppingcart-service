@@ -55,17 +55,16 @@ public class ShoppingcartServiceApplicationTests {
         // Arrange
         User user = new User();
         ReflectionTestUtils.setField(user, "userId", 1);  // 使用 Integer 类型设置 userId
-        // 使用反射设置 userId
         user.setUsername("User1");
         ApiResponse<User> userResponse = new ApiResponse<>(true, "Success", user);
         ResponseEntity<ApiResponse<User>> userEntity = new ResponseEntity<>(userResponse, HttpStatus.OK);
 
-        // 使用 doReturn 模拟返回值
+        // 模拟返回有效响应
         doReturn(userEntity).when(userService).getCurrentUserInfo(any(String.class));
 
         Cart cart = new Cart();
         cart.setCartId(1L);
-        when(shoppingCartService.createCart(anyInt(), any(), any())).thenReturn(cart);  // 根据方法签名调整为 anyInt()
+        when(shoppingCartService.createCart(anyInt(), any(), any())).thenReturn(cart);
 
         // Act & Assert
         mockMvc.perform(post("/api/v1/cart/create")
@@ -75,6 +74,33 @@ public class ShoppingcartServiceApplicationTests {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON));
     }
 
+    @Test
+    void testCreateCart_ResponseIsNull() throws Exception {
+        // 模拟返回 null 响应
+        doReturn(new ResponseEntity<>(null, HttpStatus.OK)).when(userService).getCurrentUserInfo(any(String.class));
+
+        // Act & Assert
+        mockMvc.perform(post("/api/v1/cart/create")
+                        .header("authToken", "dummyToken")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void testCreateCart_UserIsNull() throws Exception {
+        // 模拟返回的响应体中包含空的用户数据
+        ApiResponse<User> userResponse = new ApiResponse<>(true, "Success", null);
+        ResponseEntity<ApiResponse<User>> userEntity = new ResponseEntity<>(userResponse, HttpStatus.OK);
+        doReturn(userEntity).when(userService).getCurrentUserInfo(any(String.class));
+
+        // Act & Assert
+        mockMvc.perform(post("/api/v1/cart/create")
+                        .header("authToken", "dummyToken")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized());
+    }
+
+
 
 
     @Test
@@ -82,7 +108,6 @@ public class ShoppingcartServiceApplicationTests {
         // Arrange
         User user = new User();
         ReflectionTestUtils.setField(user, "userId", 1);  // 使用 Integer 类型设置 userId
-        // 使用反射设置 userId
         user.setUsername("User1");
         ApiResponse<User> userResponse = new ApiResponse<>(true, "Success", user);
         ResponseEntity<ApiResponse<User>> userEntity = new ResponseEntity<>(userResponse, HttpStatus.OK);
@@ -92,7 +117,6 @@ public class ShoppingcartServiceApplicationTests {
         cart.setCartId(1L);
         when(shoppingCartService.getCartByUserId(anyInt())).thenReturn(cart);
         when(shoppingCartService.addItemToCart(any(Cart.class), anyLong(), anyInt(), anyDouble(), anyString())).thenReturn(true);
-
 
         // Act & Assert
         mockMvc.perform(post("/api/v1/cart/add-item")
@@ -104,11 +128,44 @@ public class ShoppingcartServiceApplicationTests {
     }
 
     @Test
+    void testAddItemToCart_ResponseBodyIsNull() throws Exception {
+        // 模拟返回 null 响应体
+        doReturn(new ResponseEntity<>(null, HttpStatus.OK)).when(userService).getCurrentUserInfo(any());
+
+        // Act & Assert
+        mockMvc.perform(post("/api/v1/cart/add-item")
+                        .header("authToken", "dummyToken")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"productId\": 1, \"quantity\": 2, \"price\": 10.0}"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void testAddItemToCart_UserIsNull() throws Exception {
+        // 模拟返回的响应体中包含空的用户数据
+        ApiResponse<User> userResponse = new ApiResponse<>(true, "Success", null);
+        ResponseEntity<ApiResponse<User>> userEntity = new ResponseEntity<>(userResponse, HttpStatus.OK);
+        doReturn(userEntity).when(userService).getCurrentUserInfo(any());
+
+        // Act & Assert
+        mockMvc.perform(post("/api/v1/cart/add-item")
+                        .header("authToken", "dummyToken")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"productId\": 1, \"quantity\": 2, \"price\": 10.0}"))
+                .andExpect(status().isUnauthorized());
+    }
+
+
+
+
+
+
+
+    @Test
     void testGetCartItems() throws Exception {
         // Arrange
         User user = new User();
         ReflectionTestUtils.setField(user, "userId", 1);  // 使用 Integer 类型设置 userId
-        // 使用反射设置 userId
         user.setUsername("User1");
         ApiResponse<User> userResponse = new ApiResponse<>(true, "Success", user);
         ResponseEntity<ApiResponse<User>> userEntity = new ResponseEntity<>(userResponse, HttpStatus.OK);
@@ -139,6 +196,30 @@ public class ShoppingcartServiceApplicationTests {
     }
 
     @Test
+    void testGetCartItems_ResponseBodyIsNull() throws Exception {
+        // 模拟返回 null 响应体
+        doReturn(new ResponseEntity<>(null, HttpStatus.OK)).when(userService).getCurrentUserInfo(any());
+
+        // Act & Assert
+        mockMvc.perform(get("/api/v1/cart/items")
+                        .header("authToken", "dummyToken"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void testGetCartItems_UserIsNull() throws Exception {
+        // 模拟返回的响应体中包含空的用户数据
+        ApiResponse<User> userResponse = new ApiResponse<>(true, "Success", null);
+        ResponseEntity<ApiResponse<User>> userEntity = new ResponseEntity<>(userResponse, HttpStatus.OK);
+        doReturn(userEntity).when(userService).getCurrentUserInfo(any());
+
+        // Act & Assert
+        mockMvc.perform(get("/api/v1/cart/items")
+                        .header("authToken", "dummyToken"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void testUpdateCartItemQuantity() throws Exception {
         // Arrange
         User user = new User();
@@ -162,13 +243,39 @@ public class ShoppingcartServiceApplicationTests {
                 .andExpect(content().string("Item quantity successfully changed"));
     }
 
+    @Test
+    void testUpdateCartItemQuantity_ResponseBodyIsNull() throws Exception {
+        // 模拟返回 null 响应体
+        doReturn(new ResponseEntity<>(null, HttpStatus.OK)).when(userService).getCurrentUserInfo(any());
+
+        // Act & Assert
+        mockMvc.perform(put("/api/v1/cart/update-item-quantity")
+                        .header("authToken", "dummyToken")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"cartItemId\": 1, \"quantity\": 5}"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void testUpdateCartItemQuantity_UserIsNull() throws Exception {
+        // 模拟返回的响应体中包含空的用户数据
+        ApiResponse<User> userResponse = new ApiResponse<>(true, "Success", null);
+        ResponseEntity<ApiResponse<User>> userEntity = new ResponseEntity<>(userResponse, HttpStatus.OK);
+        doReturn(userEntity).when(userService).getCurrentUserInfo(any());
+
+        // Act & Assert
+        mockMvc.perform(put("/api/v1/cart/update-item-quantity")
+                        .header("authToken", "dummyToken")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"cartItemId\": 1, \"quantity\": 5}"))
+                .andExpect(status().isUnauthorized());
+    }
 
     @Test
     void testRemoveItemFromCart() throws Exception {
         // 模拟 User 对象
         User user = new User();
         ReflectionTestUtils.setField(user, "userId", 1);  // 改为 Integer 类型
-        // 使用反射设置 userId
         user.setUsername("User1");
         ApiResponse<User> userResponse = new ApiResponse<>(true, "Success", user);
         ResponseEntity<ApiResponse<User>> userEntity = new ResponseEntity<>(userResponse, HttpStatus.OK);
@@ -191,6 +298,29 @@ public class ShoppingcartServiceApplicationTests {
                 .andExpect(content().string("Item successfully removed"));
     }
 
+    @Test
+    void testRemoveItemFromCart_ResponseBodyIsNull() throws Exception {
+        // 模拟返回 null 响应体
+        doReturn(new ResponseEntity<>(null, HttpStatus.OK)).when(userService).getCurrentUserInfo(any());
+
+        // Act & Assert
+        mockMvc.perform(delete("/api/v1/cart/remove-item/1")
+                        .header("authToken", "dummyToken"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void testRemoveItemFromCart_UserIsNull() throws Exception {
+        // 模拟返回的响应体中包含空的用户数据
+        ApiResponse<User> userResponse = new ApiResponse<>(true, "Success", null);
+        ResponseEntity<ApiResponse<User>> userEntity = new ResponseEntity<>(userResponse, HttpStatus.OK);
+        doReturn(userEntity).when(userService).getCurrentUserInfo(any());
+
+        // Act & Assert
+        mockMvc.perform(delete("/api/v1/cart/remove-item/1")
+                        .header("authToken", "dummyToken"))
+                .andExpect(status().isUnauthorized());
+    }
 
     @Test
     void testClearCart() throws Exception {
@@ -213,6 +343,31 @@ public class ShoppingcartServiceApplicationTests {
                 .andExpect(status().isOk())
                 .andExpect(content().string("successfully removed"));
     }
+
+    @Test
+    void testClearCart_ResponseBodyIsNull() throws Exception {
+        // 模拟返回 null 响应体
+        doReturn(new ResponseEntity<>(null, HttpStatus.OK)).when(userService).getCurrentUserInfo(any());
+
+        // Act & Assert
+        mockMvc.perform(delete("/api/v1/cart/clear")
+                        .header("authToken", "dummyToken"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void testClearCart_UserIsNull() throws Exception {
+        // 模拟返回的响应体中包含空的用户数据
+        ApiResponse<User> userResponse = new ApiResponse<>(true, "Success", null);
+        ResponseEntity<ApiResponse<User>> userEntity = new ResponseEntity<>(userResponse, HttpStatus.OK);
+        doReturn(userEntity).when(userService).getCurrentUserInfo(any());
+
+        // Act & Assert
+        mockMvc.perform(delete("/api/v1/cart/clear")
+                        .header("authToken", "dummyToken"))
+                .andExpect(status().isUnauthorized());
+    }
+
 
     @Test
     void testUpdateItemSelected() throws Exception {
@@ -239,6 +394,34 @@ public class ShoppingcartServiceApplicationTests {
                         .param("isSelected", "true"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+    }
+
+    @Test
+    void testUpdateItemSelected_ResponseBodyIsNull() throws Exception {
+        // 模拟返回 null 响应体
+        doReturn(new ResponseEntity<>(null, HttpStatus.OK)).when(userService).getCurrentUserInfo(any());
+
+        // Act & Assert
+        mockMvc.perform(put("/api/v1/cart/update-item-selected")
+                        .header("authToken", "dummyToken")
+                        .param("cartItemId", "1")
+                        .param("isSelected", "true"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void testUpdateItemSelected_UserIsNull() throws Exception {
+        // 模拟返回的响应体中包含空的用户数据
+        ApiResponse<User> userResponse = new ApiResponse<>(true, "Success", null);
+        ResponseEntity<ApiResponse<User>> userEntity = new ResponseEntity<>(userResponse, HttpStatus.OK);
+        doReturn(userEntity).when(userService).getCurrentUserInfo(any());
+
+        // Act & Assert
+        mockMvc.perform(put("/api/v1/cart/update-item-selected")
+                        .header("authToken", "dummyToken")
+                        .param("cartItemId", "1")
+                        .param("isSelected", "true"))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -276,6 +459,30 @@ public class ShoppingcartServiceApplicationTests {
     }
 
     @Test
+    void testGetSelectedItems_ResponseBodyIsNull() throws Exception {
+        // 模拟返回 null 响应体
+        doReturn(new ResponseEntity<>(null, HttpStatus.OK)).when(userService).getCurrentUserInfo(any());
+
+        // Act & Assert
+        mockMvc.perform(get("/api/v1/cart/selected-items")
+                        .header("authToken", "dummyToken"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void testGetSelectedItems_UserIsNull() throws Exception {
+        // 模拟返回的响应体中包含空的用户数据
+        ApiResponse<User> userResponse = new ApiResponse<>(true, "Success", null);
+        ResponseEntity<ApiResponse<User>> userEntity = new ResponseEntity<>(userResponse, HttpStatus.OK);
+        doReturn(userEntity).when(userService).getCurrentUserInfo(any());
+
+        // Act & Assert
+        mockMvc.perform(get("/api/v1/cart/selected-items")
+                        .header("authToken", "dummyToken"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void testRemoveSelectedItems() throws Exception {
         // Arrange
         User user = new User();
@@ -295,5 +502,30 @@ public class ShoppingcartServiceApplicationTests {
                 .andExpect(status().isOk())
                 .andExpect(content().string("Selected items removed successfully"));
     }
+
+    @Test
+    void testRemoveSelectedItems_ResponseBodyIsNull() throws Exception {
+        // 模拟返回 null 响应体
+        doReturn(new ResponseEntity<>(null, HttpStatus.OK)).when(userService).getCurrentUserInfo(any());
+
+        // Act & Assert
+        mockMvc.perform(delete("/api/v1/cart/remove-selected-items")
+                        .header("authToken", "dummyToken"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void testRemoveSelectedItems_UserIsNull() throws Exception {
+        // 模拟返回的响应体中包含空的用户数据
+        ApiResponse<User> userResponse = new ApiResponse<>(true, "Success", null);
+        ResponseEntity<ApiResponse<User>> userEntity = new ResponseEntity<>(userResponse, HttpStatus.OK);
+        doReturn(userEntity).when(userService).getCurrentUserInfo(any());
+
+        // Act & Assert
+        mockMvc.perform(delete("/api/v1/cart/remove-selected-items")
+                        .header("authToken", "dummyToken"))
+                .andExpect(status().isUnauthorized());
+    }
+
 
 }

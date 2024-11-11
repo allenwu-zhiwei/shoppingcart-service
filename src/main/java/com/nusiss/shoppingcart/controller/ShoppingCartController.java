@@ -39,13 +39,13 @@ public class ShoppingCartController {
     public ResponseEntity<Cart> createCart(@RequestHeader("authToken") String authToken) {
         ResponseEntity<ApiResponse<User>> response = userService.getCurrentUserInfo(authToken);
         ApiResponse<User> responseBody = response.getBody();
-        if (responseBody == null || !responseBody.isSuccess()) {//NOSONAR
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);//NOSONAR
+        if (responseBody == null || !responseBody.isSuccess()) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }//NOSONAR
 
         User user = responseBody.getData();
-        if (user == null) {//NOSONAR
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);//NOSONAR
+        if (user == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
         Cart cart = shoppingCartService.createCart(user.getUserId(), user.getUsername(), user.getUsername());
 
@@ -58,13 +58,13 @@ public class ShoppingCartController {
     public ResponseEntity<String> addItemToCart(@RequestHeader("authToken") String authToken, @Valid @RequestBody AddCartItemRequest request) {
         ResponseEntity<ApiResponse<User>> response = userService.getCurrentUserInfo(authToken);
         ApiResponse<User> responseBody = response.getBody();
-        if (responseBody == null || !responseBody.isSuccess()) {//NOSONAR
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);//NOSONAR
+        if (responseBody == null || !responseBody.isSuccess()) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
 
         User user = responseBody.getData();
-        if (user == null) {//NOSONAR
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);//NOSONAR
+        if (user == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
         Cart cart = shoppingCartService.getCartByUserId(user.getUserId());
         if (cart == null) {
@@ -82,13 +82,13 @@ public class ShoppingCartController {
     public ResponseEntity<List<CartItem>> getCartItems(@RequestHeader("authToken") String authToken) {
         ResponseEntity<ApiResponse<User>> response = userService.getCurrentUserInfo(authToken);
         ApiResponse<User> responseBody = response.getBody();
-        if (responseBody == null || !responseBody.isSuccess()) {//NOSONAR
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);//NOSONAR
+        if (responseBody == null || !responseBody.isSuccess()) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
 
         User user = responseBody.getData();
-        if (user == null) {//NOSONAR
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);//NOSONAR
+        if (user == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
         Cart cart = shoppingCartService.getCartByUserId(user.getUserId());
         if (cart == null) {
@@ -102,13 +102,13 @@ public class ShoppingCartController {
     public ResponseEntity<String> updateCartItemQuantity(@RequestHeader("authToken") String authToken, @Valid @RequestBody UpdateCartItemQuantityRequest request) {
         ResponseEntity<ApiResponse<User>> response = userService.getCurrentUserInfo(authToken);
         ApiResponse<User> responseBody = response.getBody();
-        if (responseBody == null || !responseBody.isSuccess()) {//NOSONAR
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);//NOSONAR
+        if (responseBody == null || !responseBody.isSuccess()) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
 
         User user = responseBody.getData();
-        if (user == null) {//NOSONAR
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);//NOSONAR
+        if (user == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
         Cart cart = shoppingCartService.getCartByUserId(user.getUserId());
 
@@ -124,13 +124,13 @@ public class ShoppingCartController {
     public ResponseEntity<String> removeItemFromCart(@RequestHeader("authToken") String authToken, @PathVariable Long cartItemId) {
         ResponseEntity<ApiResponse<User>> response = userService.getCurrentUserInfo(authToken);
         ApiResponse<User> responseBody = response.getBody();
-        if (responseBody == null || !responseBody.isSuccess()) {//NOSONAR
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);//NOSONAR
+        if (responseBody == null || !responseBody.isSuccess()) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
 
         User user = responseBody.getData();
-        if (user == null) {//NOSONAR
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);//NOSONAR
+        if (user == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
         Cart cart = shoppingCartService.getCartByUserId(user.getUserId());
         boolean success = shoppingCartService.removeItemFromCart(cart.getCartId(), cartItemId);
@@ -145,13 +145,13 @@ public class ShoppingCartController {
     public ResponseEntity<String> clearCart(@RequestHeader("authToken") String authToken) {
         ResponseEntity<ApiResponse<User>> response = userService.getCurrentUserInfo(authToken);
         ApiResponse<User> responseBody = response.getBody();
-        if (responseBody == null || !responseBody.isSuccess()) {//NOSONAR
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);//NOSONAR
+        if (responseBody == null || !responseBody.isSuccess()) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
 
         User user = responseBody.getData();
-        if (user == null) {//NOSONAR
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);//NOSONAR
+        if (user == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
         Cart cart = shoppingCartService.getCartByUserId(user.getUserId());
         boolean success = shoppingCartService.clearCart(cart.getCartId());
@@ -166,13 +166,13 @@ public class ShoppingCartController {
     public ResponseEntity<CartItem> updateItemSelected(@RequestHeader("authToken") String authToken, @RequestParam Long cartItemId, @RequestParam Boolean isSelected) {
         ResponseEntity<ApiResponse<User>> response = userService.getCurrentUserInfo(authToken);
         ApiResponse<User> responseBody = response.getBody();
-        if (responseBody == null || !responseBody.isSuccess()) {//NOSONAR
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);//NOSONAR
+        if (responseBody == null || !responseBody.isSuccess()) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
 
         User user = responseBody.getData();
         if (user == null) {//NOSONAR
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);//NOSONAR
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
         Cart cart = shoppingCartService.getCartByUserId(user.getUserId());
         CartItem cartItem = cartItemService.updateItemSelected(cart.getCartId(), cartItemId, isSelected);
@@ -183,13 +183,13 @@ public class ShoppingCartController {
     public ResponseEntity<List<CartInfoDTO>> getSelectedItems(@RequestHeader("authToken") String authToken) {
         ResponseEntity<ApiResponse<User>> response = userService.getCurrentUserInfo(authToken);
         ApiResponse<User> responseBody = response.getBody();
-        if (responseBody == null || !responseBody.isSuccess()) {//NOSONAR
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);//NOSONAR
-        }//NOSONAR
+        if (responseBody == null || !responseBody.isSuccess()) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
 
         User user = responseBody.getData();
         if (user == null) {//NOSONAR
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);//NOSONAR
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
         Cart cart = shoppingCartService.getCartByUserId(user.getUserId());
         List<CartItem> selectedItems = cartItemService.getSelectedItems(cart.getCartId());
@@ -206,13 +206,13 @@ public class ShoppingCartController {
     public ResponseEntity<String> removeSelectedItems(@RequestHeader("authToken") String authToken) {
         ResponseEntity<ApiResponse<User>> response = userService.getCurrentUserInfo(authToken);
         ApiResponse<User> responseBody = response.getBody();
-        if (responseBody == null || !responseBody.isSuccess()) {//NOSONAR
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);//NOSONAR
+        if (responseBody == null || !responseBody.isSuccess()) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
 
         User user = responseBody.getData();
-        if (user == null) {//NOSONAR
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);//NOSONAR
+        if (user == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
         Cart cart = shoppingCartService.getCartByUserId(user.getUserId());
         cartItemService.removeSelectedItems(cart.getCartId());
